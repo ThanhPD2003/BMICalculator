@@ -22,6 +22,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".BMICalculator" />
+        <activity android:name=".HistoryDisplay" />
     </application>
 
 </manifest>

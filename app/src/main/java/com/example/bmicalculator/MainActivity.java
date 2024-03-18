@@ -9,7 +9,10 @@ import android.view.View;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
+
     Button btnOpenBmiCalculator;
+    Button btnHistory;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -20,10 +23,12 @@ public class MainActivity extends AppCompatActivity {
 
     private void bindingView() {
         btnOpenBmiCalculator = findViewById(R.id.btnOpenBmiCalculator);
+        btnHistory = findViewById(R.id.btnHistory);
     }
 
     private void bindingAction() {
         btnOpenBmiCalculator.setOnClickListener(this::onBtnOpenBmiCalculator);
+        btnHistory.setOnClickListener(this::onBtnHistory);
     }
 
     public void onBtnOpenBmiCalculator(View view) {
@@ -32,4 +37,10 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    public void onBtnHistory(View view) {
+        Log.d("MainActivity", "Opening History Display");
+        Intent intent = new Intent(this, HistoryDisplay.class);
+        startActivity(intent);
+    }
 }
+

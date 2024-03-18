@@ -1,8 +1,8 @@
 package com.example.bmicalculator;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
@@ -10,10 +10,15 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 import android.widget.Toast;
 
-public class BMICalculator extends Activity {
+import com.example.bmicalculator.database.AppDatabase;
+import com.example.bmicalculator.models.User;
+
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+
+public class BMICalculator extends AppCompatActivity {
 
     private EditText weightEditText;
     private EditText heightEditText;
@@ -23,15 +28,19 @@ public class BMICalculator extends Activity {
     private RadioButton femaleRadioButton;
 
     private Button btnCalculate;
-    private TextView bmiTextView;
-    private TextView bmrTextView;
+    
+    private Button btnBack;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_bmi_calculator);
+
         bindingView();
         bindingAction();
+
+
     }
 
     private void bindingView() {
@@ -42,16 +51,22 @@ public class BMICalculator extends Activity {
         maleRadioButton = findViewById(R.id.maleRadioButton);
         femaleRadioButton = findViewById(R.id.femaleRadioButton);
         btnCalculate = findViewById(R.id.btnCalculate);
-        bmiTextView = findViewById(R.id.bmiTextView);
-        bmrTextView = findViewById(R.id.bmrTextView);
+        btnBack=findViewById(R.id.btnBack);
     }
 
     private boolean getIsMale() {
         int selectedId = genderRadioGroup.getCheckedRadioButtonId();
         return selectedId == R.id.maleRadioButton;
     }
+
     private void bindingAction() {
         btnCalculate.setOnClickListener(this::onBtnCalculate);
+        btnBack.setOnClickListener(this::onBtnBack);
+    }
+
+    private void onBtnBack(View view) {
+        // Assuming you have a MainActivity class
+        finish();
     }
 
     private void onBtnCalculate(View v) {
@@ -59,22 +74,45 @@ public class BMICalculator extends Activity {
             double weight = Double.parseDouble(weightEditText.getText().toString());
             double height = Double.parseDouble(heightEditText.getText().toString()) / 100; // Convert cm to meters
             int age = Integer.parseInt(ageEditText.getText().toString());
-            boolean isMale;
-            isMale = getIsMale();
+            boolean isMale = getIsMale();
             double bmi = calculateBMI(weight, height);
             double bmr = calculateBMR(weight, height, age, isMale);
 
             String bmiText = "Your BMI is: " + String.format("%.2f", bmi) + "\n";
-            bmiText += interpretBmi(bmi);
+            String status = interpretBmi(bmi);
+            bmiText += status;
 
             String bmrText = "Your BMR is: " + String.format("%.2f", bmr) + " calories/day";
+            LocalDateTime localTime = null;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                localTime = LocalDateTime.now();
+            }
+            // Display the results
+            showResultDialog(bmiText + "\n\n" + bmrText);
+            insertUser(weight, height, age, isMale,bmi,bmr,localTime,status);
 
-            bmiTextView.setText(bmiText);
-            bmrTextView.setText(bmrText);
         } catch (NumberFormatException e) {
             // Handle invalid input gracefully
             Toast.makeText(this, "Invalid input detected. Please check the entered values.", Toast.LENGTH_LONG).show();
         }
+    }
+
+    private void insertUser(double weight, double height, int age, boolean isMale, double bmi, double bmr, LocalDateTime date, String status) {
+        User user = new User(weight, height, age, isMale, bmi, bmr, date.toString(), status);
+        AppDatabase.getInstance(this).userDao().insert(user);
+
+    }
+
+
+
+
+    private void showResultDialog(String message) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("BMI & BMR Results");
+        builder.setMessage(message);
+        builder.setPositiveButton("OK", (dialog, which) -> dialog.dismiss());
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
     }
 
     private double calculateBMI(double weight, double height) {
