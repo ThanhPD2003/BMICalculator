@@ -15,4 +15,7 @@ public interface UserDao {
     @Query("SELECT * FROM user_info")
     List<User> getAllUser();
 
+    @Query("SELECT * FROM user_info ORDER BY dateTime DESC LIMIT 1")
+    User getLatestUser();
+
 }

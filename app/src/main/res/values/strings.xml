@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">BMICalculator</string>
+    <string name="channel_description">BMICalculator</string>
 </resources>
